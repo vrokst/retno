@@ -1,0 +1,274 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Retno API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: generate
+    description: Script generation
+  - name: transcript
+    description: YouTube transcript
+  - name: history
+    description: Script history
+  - name: auth
+    description: Authentication
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /generate:
+    post:
+      operationId: generateScripts
+      tags: [generate]
+      summary: Generate viral scripts
+      description: Generate 5 unique viral short-form video scripts from a YouTube URL or text idea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateInput"
+      responses:
+        "200":
+          description: Generated scripts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /transcript:
+    post:
+      operationId: fetchTranscript
+      tags: [transcript]
+      summary: Fetch YouTube transcript
+      description: Extract transcript from a YouTube video URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranscriptInput"
+      responses:
+        "200":
+          description: Transcript fetched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranscriptResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /history:
+    get:
+      operationId: getHistory
+      tags: [history]
+      summary: Get script history
+      description: Retrieve the user's previously generated scripts
+      responses:
+        "200":
+          description: Script history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScriptRecord"
+
+  /auth:
+    post:
+      operationId: authenticate
+      tags: [auth]
+      summary: Authenticate user
+      description: Authenticate or register a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthInput"
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    GenerateInput:
+      type: object
+      required:
+        - input
+      properties:
+        input:
+          type: string
+          description: YouTube URL or raw text idea
+        inputType:
+          type: string
+          enum: [url, text]
+          description: Type of input provided
+
+    Script:
+      type: object
+      required:
+        - hook
+        - body
+        - hashtags
+      properties:
+        hook:
+          type: string
+          description: Viral opening hook
+        body:
+          type: string
+          description: Full script body with visual cues
+        hashtags:
+          type: array
+          items:
+            type: string
+          description: Recommended hashtags
+        visualCues:
+          type: ["string", "null"]
+          description: Visual direction notes
+
+    GenerateResult:
+      type: object
+      required:
+        - scripts
+        - id
+      properties:
+        id:
+          type: string
+          description: Unique ID for this generation
+        scripts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Script"
+        inputSummary:
+          type: ["string", "null"]
+          description: Summary of the input provided
+
+    TranscriptInput:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: YouTube video URL
+
+    TranscriptResult:
+      type: object
+      required:
+        - transcript
+      properties:
+        transcript:
+          type: string
+          description: Extracted transcript text
+        title:
+          type: ["string", "null"]
+          description: Video title if available
+
+    ScriptRecord:
+      type: object
+      required:
+        - id
+        - createdAt
+        - inputSummary
+        - scripts
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        inputSummary:
+          type: string
+        scripts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Script"
+
+    AuthInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResult:
+      type: object
+      required:
+        - token
+        - userId
+      properties:
+        token:
+          type: string
+        userId:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string

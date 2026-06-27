@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Retno"
+version = "1.0.0"
+id = "artifacts/retno"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19276
+
+[services.development]
+run = "pnpm --filter @workspace/retno run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/retno", "run", "build" ]
+publicDir = "artifacts/retno/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19276"
+BASE_PATH = "/"
