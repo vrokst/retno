@@ -1,0 +1,6 @@
+[build] 
+builder = "NIXPACKS" 
+ 
+[build.environment] 
+pnpm_config_frozen_lockfile = "false" 
+PNPM_FLAGS = "--no-frozen-lockfile"
